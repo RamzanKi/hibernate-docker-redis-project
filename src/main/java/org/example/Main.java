@@ -51,11 +51,11 @@ public class Main {
         List<CityCountry> preparedData = main.transformData(allCities);
         main.pushToRedis(preparedData);
 
-        //закроем текущую сессию, чтобы точно делать запрос к БД, а не вытянуть данные из кэша
+        //закрыть текущую сессию, чтобы точно делать запрос к БД, а не вытянуть данные из кэша
         main.sessionFactory.getCurrentSession().close();
 
-        //выбираем 10 случайных id городов
-        //так как мы не делали обработку невалидных ситуаций, используй существующие в БД id
+        //10 случайных id городов
+        //так как не было обработки невалидных ситуаций, использую существующие в БД id
         List<Integer> ids = List.of(3, 2545, 123, 4, 189, 89, 3458, 1189, 10, 102);
 
         long startRedis = System.currentTimeMillis();
@@ -89,7 +89,7 @@ public class Main {
             for (Integer id : ids) {
                 String value = sync.get(String.valueOf(id));
                 try {
-                    mapper.readValue(value, CityCountry.class);
+                    CityCountry cityCountry = mapper.readValue(value, CityCountry.class);
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
@@ -102,7 +102,7 @@ public class Main {
             RedisStringCommands<String, String> sync = connection.sync();
             for (CityCountry cityCountry : data) {
                 try {
-                    sync.set(String.valueOf(cityCountry.getId()), mapper.writeValueAsString(cityCountry));
+                    String set = sync.set(String.valueOf(cityCountry.getId()), mapper.writeValueAsString(cityCountry));
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
